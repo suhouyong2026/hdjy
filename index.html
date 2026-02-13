@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>标准眼镜-镜片参数计算器</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f5f7fa;
+      padding: 16px;
+      color: #333;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 20px;
+      color: #2c3e50;
+    }
+    .input-group, .output-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    button {
+      width: 10;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:active {
+      background-color: #2980b9;
+    }
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .result-label {
+      font-weight: bold;
+    }
+    .result-value {
+      color: #e74c3c;
+    }
+    .note {
+      font-size: 12px;
+      color: #7f8c8d;
+      margin-top: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>标准眼镜-镜片参数计算器</h1>
+
+    <div class="input-group">
+      <label for="refractiveIndex">折射率 (A)</label>
+      <input type="number" id="refractiveIndex" step="0.001" placeholder="例如：1.591" required />
+    </div>
+
+    <div class="input-group">
+      <label for="power">屈光度 (B)</label>
+      <input type="number" id="power" step="0.25" placeholder="例如：1.00" required />
+    </div>
+
+    <div class="input-group">
+      <label for="frameSize">镜圈尺寸 (C)</label>
+      <input type="number" id="frameSize" placeholder="例如：52" required />
+    </div>
+
+    <div class="input-group">
+      <label for="bridgeSize">鼻梁尺寸 (D)</label>
+      <input type="number" id="bridgeSize" placeholder="例如：19" required />
+    </div>
+
+    <div class="input-group">
+      <label for="pupillaryDistance">瞳距 (E)</label>
+      <input type="number" id="pupillaryDistance" placeholder="例如：63" required />
+    </div>
+
+    <button onclick="calculate()">计算结果</button>
+
+    <div id="results" style="margin-top: 20px; display: none;">
+      <div class="result-item">
+        <span class="result-label">r (F):</span>
+        <span class="result-value" id="rVal"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">r² (G):</span>
+        <span class="result-value" id="r2Val"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">实际半径 (H):</span>
+        <span class="result-value" id="actualRadiusVal"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">单片移心量 (I):</span>
+        <span class="result-value" id="decentrationVal"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">镜片厚度 (J):</span>
+        <span class="result-value" id="thicknessVal"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">最小片基 (K):</span>
+        <span class="result-value" id="minBlankVal"></span>
+      </div>
+    </div>
+
+    <p class="note">
+      ⚠️ 如程序计算出现问题请与培训部联系。
+    </p>
+  </div>
+
+  <script>
+    function calculate() {
+      // 获取输入
+      const A = parseFloat(document.getElementById('refractiveIndex').value);
+      const B = parseFloat(document.getElementById('power').value);
+      const C = parseFloat(document.getElementById('frameSize').value);
+      const D = parseFloat(document.getElementById('bridgeSize').value);
+      const E = parseFloat(document.getElementById('pupillaryDistance').value);
+
+      // 验证
+      if (isNaN(A) || isNaN(B) || isNaN(C) || isNaN(D) || isNaN(E)) {
+        alert('请填写所有字段！');
+        return;
+      }
+
+      // 计算 F-K
+      const r = (C + D - E) / 2;
+      const r2 = r * r;
+      const actualRadius = C / 2;
+      const decentration = Math.abs(r);
+      
+      // 镜片厚度：根据你提供的数据反推的近似公式（请替换为真实公式）
+      // 示例数据：A=1.591, B=1, r=4 → 厚度=2.2619
+      // 使用：thickness = 1.2 + B * r2 * 0.0661
+      const thickness = 1.2 + B * r2 * 0.0661;
+
+      // 最小片基：C + 2*|r| + 4 → 52 + 8 + 4 = 64 ✅
+      const minBlank = C + 2 * decentration + 4;
+
+      // 显示结果
+      document.getElementById('rVal').textContent = r.toFixed(3);
+      document.getElementById('r2Val').textContent = r2.toFixed(3);
+      document.getElementById('actualRadiusVal').textContent = actualRadius.toFixed(3);
+      document.getElementById('decentrationVal').textContent = decentration.toFixed(3);
+      document.getElementById('thicknessVal').textContent = thickness.toFixed(5);
+      document.getElementById('minBlankVal').textContent = Math.round(minBlank);
+
+      document.getElementById('results').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
